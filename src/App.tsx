@@ -1,10 +1,11 @@
 import "./App.css";
-import QueryExample from "./components/QueryExample";
+import MutationExample from "./components/MutationExample";
+// import QueryExample from "./components/QueryExample";
 
 function App() {
   return (
     <>
-      <QueryExample />
+      <MutationExample />
     </>
   );
 }

@@ -1,40 +1,33 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
-type Post = {
+interface Post {
+  userId: number;
   id: number;
   title: string;
   body: string;
-};
+}
+
+async function fetchPosts(): Promise<Post[]> {
+  const res = await fetch(
+    "https://jsonplaceholder.typicode.com/posts?_limit=5",
+  );
+
+  return res.json();
+}
 
 function QueryExample() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchPosts() {
-      try {
-        const res = await fetch(
-          "https://jsonplaceholder.typicode.com/posts?_limit=5",
-        );
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch posts");
-        }
-
-        const data = await res.json();
-        setPosts(data);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "An unknown error occurred",
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchPosts();
-  }, []);
+  const [isLoadData, setIsLoadData] = useState<boolean>(false);
+  const {
+    data: posts,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery<Post[]>({
+    queryKey: ["posts"],
+    queryFn: fetchPosts,
+    enabled: isLoadData,
+  });
 
   return (
     <div className="section">
@@ -42,18 +35,23 @@ function QueryExample() {
       <p>This is our first query without TanStack Query</p>
 
       {isLoading && <p>Loading...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p style={{ color: "red" }}>Something went wrong</p>}
 
-      {posts.map((post) => (
-        <div key={post.id} className="card">
-          <h4>{post.title}</h4>
-          <p>{post.body}</p>
+      <button onClick={() => setIsLoadData(true)}>Load Data</button>
+      <button onClick={() => refetch()}>Refetch</button>
+
+      {posts && (
+        <div>
+          {posts.map((post: Post) => (
+            <div key={post.id} className="card">
+              <h4>{post.title}</h4>
+              <p>{post.body}</p>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 }
 
 export default QueryExample;
-
-// 8:20
