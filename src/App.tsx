@@ -1,13 +1,15 @@
 import "./App.css";
-import CachingExample from "./components/CachingExample";
+import PaginationExample from "./components/PaginationExample";
+// import CachingExample from "./components/CachingExample";
+// import OptimisticUpdatesExample from "./components/OptimisticQueryExample";
 // import MutationExample from "./components/MutationExample";
 // import QueryExample from "./components/QueryExample";
 
 function App() {
   return (
-    <>
-      <CachingExample />
-    </>
+    <div className="google-sans-regular">
+      <PaginationExample />
+    </div>
   );
 }
 
