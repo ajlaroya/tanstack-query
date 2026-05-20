@@ -1,4 +1,8 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useQuery,
+} from "@tanstack/react-query";
 import { useState } from "react";
 
 interface Post {
@@ -8,14 +12,11 @@ interface Post {
   body: string;
 }
 
-interface FetchPostsParams {
-  page: number;
-}
-
 interface FetchInfinitePostsParams {
   pageParam?: number;
 }
 
+// This function simulates fetching posts for a specific page. It uses the JSONPlaceholder API, which provides a simple way to test pagination by accepting `_page` and `_limit` query parameters.
 async function fetchPosts(page: number): Promise<Post[]> {
   const res = await fetch(
     `https://jsonplaceholder.typicode.com/posts?_page=${page}&_limit=10`,
@@ -23,6 +24,7 @@ async function fetchPosts(page: number): Promise<Post[]> {
   return res.json();
 }
 
+// This function simulates fetching posts for infinite scrolling. It accepts an optional `pageParam` which defaults to 1 if not provided. This allows it to be used with React Query's infinite query features, where the next page can be fetched based on the last page's data.
 async function fetchInfinitePosts({
   pageParam = 1,
 }: FetchInfinitePostsParams): Promise<Post[]> {
@@ -43,7 +45,8 @@ export default function PaginationInfiniteQueriesExample() {
         explicit pagination controls.
       </p>
 
-      <PaginationExample />
+      {/* <PaginationExample /> */}
+      <InfiniteQueryExample />
     </div>
   );
 }
@@ -60,16 +63,17 @@ function PaginationExample() {
     queryKey: ["posts", page],
     queryFn: () => fetchPosts(page),
     placeholderData: keepPreviousData,
+    staleTime: 1000 * 60, // Keep data fresh for 1 minute
   });
 
   return (
-    <div className="card">
+    <div>
       <h3>Pagination Example</h3>
       <p>
         This uses a normal query, butthe page number is part of the query key.
       </p>
 
-      <div style={{ marginBottom: "10px" }}>
+      <div>
         <button onClick={() => setPage((prev) => Math.max(prev - 1, 1))}>
           Previous
         </button>
@@ -84,7 +88,7 @@ function PaginationExample() {
 
       {posts &&
         posts.map((post) => (
-          <div key={post.id} className="card">
+          <div key={post.id} className="card" style={{ marginBottom: "10px" }}>
             <h4>{post.title}</h4>
             <p>{post.body}</p>
           </div>
@@ -93,4 +97,57 @@ function PaginationExample() {
   );
 }
 
-// 36:13
+function InfiniteQueryExample() {
+  const {
+    data,
+    isLoading,
+    isFetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["infinite-posts"],
+    queryFn: fetchInfinitePosts,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length < 5) return undefined;
+      return allPages.length + 1;
+    },
+  });
+
+  return (
+    <div>
+      <h3>Infinite Query Example</h3>
+      <p>
+        This loads one page at a time and appends the new results to the bottom
+      </p>
+
+      {isLoading && <p>Loading...</p>}
+      {isFetching && !isFetchingNextPage && <p>Background fetching...</p>}
+
+      {data?.pages.map((page, pageIndex) => (
+        <div key={pageIndex}>
+          {page.map((post) => (
+            <div
+              key={post.id}
+              className="card"
+              style={{ marginBottom: "10px" }}
+            >
+              <h4>{post.title}</h4>
+              <p>{post.body}</p>
+            </div>
+          ))}
+        </div>
+      ))}
+
+      <button
+        onClick={() => fetchNextPage()}
+        disabled={!hasNextPage || isFetchingNextPage}
+      >
+        {isFetchingNextPage ? "Loading..." : "Load More"}
+      </button>
+
+      {!hasNextPage && <p>No more posts to load</p>}
+    </div>
+  );
+}

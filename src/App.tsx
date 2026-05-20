@@ -1,5 +1,5 @@
 import "./App.css";
-import PaginationExample from "./components/PaginationExample";
+import PaginationInfiniteQueriesExample from "./components/PaginationExample";
 // import CachingExample from "./components/CachingExample";
 // import OptimisticUpdatesExample from "./components/OptimisticQueryExample";
 // import MutationExample from "./components/MutationExample";
@@ -8,7 +8,7 @@ import PaginationExample from "./components/PaginationExample";
 function App() {
   return (
     <div className="google-sans-regular">
-      <PaginationExample />
+      <PaginationInfiniteQueriesExample />
     </div>
   );
 }
